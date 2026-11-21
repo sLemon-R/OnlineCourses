@@ -17,4 +17,7 @@ public sealed class Course
 
     /// <summary>Отримує кількість вільних місць.</summary>
     public int SeatsLeft { get; init; }
+
+    /// <summary>Отримує коди курсів, які треба пройти до цього курсу.</summary>
+    public IReadOnlyList<string> Prerequisites { get; init; } = Array.Empty<string>();
 }
