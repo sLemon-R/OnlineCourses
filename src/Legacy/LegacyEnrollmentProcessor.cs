@@ -37,6 +37,7 @@ public class LegacyEnrollmentProcessor
     private decimal _tmpDiscount;
     private readonly DiscountPolicy _discounts = new();
     private readonly ShippingPolicy _shipping = new();
+    private readonly ReportBuilder _report = new();
     private readonly List<string> _log = new();
 
     public string Handle(int docId, int clientId,
@@ -55,27 +56,13 @@ public class LegacyEnrollmentProcessor
         decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
-        string txt = "Документ #" + docId + "\n";
-        txt += "Клієнт: " + clientName + "\n";
-        for (int i = 0; i < lines.Count; i++)
-        {
-            txt += lines[i].Code + " x" + lines[i].Seats + " = " +
-                (lines[i].Seats * lines[i].Price)
-                .ToString("0.00") + " " + currency + "\n";
-        }
-
-        txt += "Знижка: " + _tmpDiscount.ToString("0.00") +
-            " " + currency + "\n";
-        txt += "Доставка: " + ship.ToString("0.00") +
-            " " + currency + "\n";
-        txt += "Разом: " + total.ToString("0.00") +
-            " " + currency + "\n";
         if (sendMail)
         {
             _log.Add("mail -> " + clientMail);
         }
 
-        return txt;
+        return _report.Build(docId, clientName, lines, currency,
+            _tmpDiscount, ship, total);
     }
 
     private static string? Validate(List<CourseLine>? items,
