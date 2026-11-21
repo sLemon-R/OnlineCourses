@@ -16,7 +16,8 @@ public sealed class InMemoryEnrollmentRepository : IEnrollmentRepository
     }
 
     /// <inheritdoc/>
-    public Enrollment? GetById(int id) => _items.TryGetValue(id, out Enrollment? found) ? found : null;
+    public Enrollment? GetById(int id) =>
+        _items.TryGetValue(id, out Enrollment? found) ? found : null;
 
     /// <inheritdoc/>
     public IReadOnlyList<Enrollment> GetAll() => _items.Values.ToList();

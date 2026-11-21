@@ -56,7 +56,8 @@ public sealed class Enrollment
     {
         if (!CanChangeTo(to))
         {
-            throw new InvalidOperationException("Перехід " + Status + " -> " + to + " заборонений.");
+            throw new InvalidOperationException(
+                "Перехід " + Status + " -> " + to + " заборонений.");
         }
 
         Status = to;

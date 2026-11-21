@@ -2,12 +2,14 @@ using System.Text;
 using OnlineCourses.App;
 using OnlineCourses.Core.Abstractions;
 using OnlineCourses.Core.Domain;
+using OnlineCourses.Core.Errors;
 using OnlineCourses.Core.Infrastructure;
 using OnlineCourses.Core.Pricing;
 using OnlineCourses.Core.Reporting;
 using OnlineCourses.Core.Services;
 
 Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 // композиційний корінь: тільки тут створюються конкретні реалізації
 Dictionary<string, IPricingPolicy> policies = new()
@@ -26,14 +28,49 @@ EnrollmentService service = new(repository, policy);
 EnrollmentConfirmation confirmation = new(new ConsoleNotifier());
 
 Enrollment enrollment = new(1, listener.Id, new DateOnly(2026, 11, 21));
-enrollment.AddLine(new EnrollmentLine("CS-101", 2, 1499.50m));
-enrollment.AddLine(new EnrollmentLine("DB-201", 1, 899.90m));
+repository.Add(enrollment);
 
-decimal total = service.Place(enrollment);
+Console.WriteLine("Позиція: код;місця;ціна (порожній рядок — кінець вводу)");
+while (true)
+{
+    Console.Write("> ");
+    string? input = Console.ReadLine();
+    if (string.IsNullOrWhiteSpace(input))
+    {
+        break;
+    }
+
+    Console.WriteLine(input);
+    string[] parts = input.Split(';');
+    if (parts.Length != 3)
+    {
+        Console.WriteLine("Помилка вводу: потрібно три поля через ;");
+        continue;
+    }
+
+    Result<EnrollmentLine> parsed = EnrollmentLineParser.Parse(parts[0], parts[1], parts[2]);
+    if (!parsed.IsSuccess)
+    {
+        Console.WriteLine("Помилка вводу: " + parsed.Error);
+        continue;
+    }
+
+    service.AddLine(enrollment.Id, parsed.Value!);
+    Console.WriteLine("Додано: " + parsed.Value!.CourseCode);
+}
+
+decimal total = service.TotalOf(enrollment);
+service.Pay(enrollment.Id, total);
 confirmation.Send(listener, enrollment, total);
-Console.WriteLine($"Заявка № {enrollment.Id}, слухач {listener.FullName}");
-Console.WriteLine($"Політика: {policy.GetType().Name}");
-Console.WriteLine($"Вартість: {total:F2}");
-Console.WriteLine($"Стан: {enrollment.Status}");
-Console.WriteLine($"Заявок у сховищі: {repository.GetAll().Count}");
+Console.WriteLine($"Заявка № {enrollment.Id}: {total:F2} грн, стан {enrollment.Status}");
+
+try
+{
+    service.Pay(42, 100m);
+}
+catch (DomainRuleException ex)
+{
+    Console.WriteLine("Відмова [" + ex.Rule + "]: " + ex.Message);
+}
+
 Console.Write(EnrollmentCsvReport.TextOf(repository.GetAll()));

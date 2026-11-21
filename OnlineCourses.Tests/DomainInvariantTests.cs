@@ -22,13 +22,15 @@ public class DomainInvariantTests
         enrollment.ChangeStatus(EnrollmentStatus.InProgress);
         enrollment.ChangeStatus(EnrollmentStatus.Completed);
 
-        Assert.Throws<InvalidOperationException>(() => enrollment.ChangeStatus(EnrollmentStatus.Paid));
+        Assert.Throws<InvalidOperationException>(
+            () => enrollment.ChangeStatus(EnrollmentStatus.Paid));
     }
 
     [Fact]
     public void TotalOf_DiscountPolicy10Percent_ReturnsDiscountedSum()
     {
-        EnrollmentService service = new(new InMemoryEnrollmentRepository(), new DiscountPricingPolicy(0.10m));
+        EnrollmentService service = new(
+            new InMemoryEnrollmentRepository(), new DiscountPricingPolicy(0.10m));
         Enrollment enrollment = new(1, 10, new DateOnly(2026, 11, 21));
         enrollment.AddLine(new EnrollmentLine("CS-101", 2, 1000m));
         enrollment.AddLine(new EnrollmentLine("DB-201", 1, 500m));
