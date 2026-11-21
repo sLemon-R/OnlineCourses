@@ -9,7 +9,10 @@ public static class EnrollmentGuards
     /// <param name="listenerEmail">Пошта слухача із символом @.</param>
     /// <exception cref="ArgumentOutOfRangeException">Номер заявки не додатний.</exception>
     /// <exception cref="ArgumentException">Ім'я чи пошта порожні або пошта без @.</exception>
-    public static void EnsureHeaderValid(int enrollmentId, string listenerName, string listenerEmail)
+    public static void EnsureHeaderValid(
+        int enrollmentId,
+        string listenerName,
+        string listenerEmail)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(enrollmentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(listenerName);
@@ -24,7 +27,9 @@ public static class EnrollmentGuards
     /// <param name="line">Позиція з кодом курсу, місцями й ціною.</param>
     /// <exception cref="ArgumentNullException">Позиція відсутня.</exception>
     /// <exception cref="ArgumentException">Код курсу порожній.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Місць не більше нуля або ціна від'ємна.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Місць не більше нуля або ціна від'ємна.
+    /// </exception>
     public static void EnsureLineValid(CourseItem line)
     {
         ArgumentNullException.ThrowIfNull(line);
@@ -49,5 +54,18 @@ public static class EnrollmentGuards
         {
             EnsureLineValid(line);
         }
+    }
+
+    /// <summary>Перевіряє весь запит на розрахунок одним викликом.</summary>
+    /// <param name="request">Запит на розрахунок вартості.</param>
+    /// <exception cref="ArgumentNullException">Запит або слухач відсутні.</exception>
+    /// <exception cref="ArgumentException">Заголовок чи позиції некоректні.</exception>
+    public static void EnsureRequestValid(TotalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Listener);
+        EnsureHeaderValid(request.EnrollmentId, request.Listener.Name, request.Listener.Email);
+        EnsureLinesValid(request.Lines);
+        ArgumentOutOfRangeException.ThrowIfNegative(request.DeliveryPrice);
     }
 }

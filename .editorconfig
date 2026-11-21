@@ -75,8 +75,3 @@ dotnet_diagnostic.IDE0055.severity = warning
 # (заборона підкреслень в іменах) для проєкту тестів вимкнено
 [OnlineCourses.Tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
-
-# Метод-монстр ЛР3 вноситься без змін; аналізатори його пропускають,
-# доки файл не буде видалено в завданні 5 ЛР3
-[OnlineCourses.Core/Legacy/LegacyProcessor.cs]
-generated_code = true
