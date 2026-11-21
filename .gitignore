@@ -1,0 +1,49 @@
+## .gitignore для .NET (скорочено зі стандартного шаблону dotnet new gitignore)
+
+# результати складання
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / VS Code / Rider
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.userosscache
+*.sln.docstates
+
+# результати тестів і покриття
+[Tt]est[Rr]esult*/
+*.trx
+coverage*.json
+coverage*.xml
+*.coverage
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# тимчасові файли
+*.tmp
+*.log
+*.swp
+~$*
+Thumbs.db
+.DS_Store
+
+# власні винятки проєкту
+*.user
+data/*.local.json
