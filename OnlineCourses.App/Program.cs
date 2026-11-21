@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using OnlineCourses.App;
+using OnlineCourses.Core;
 using OnlineCourses.Core.Abstractions;
 using OnlineCourses.Core.Domain;
 using OnlineCourses.Core.Errors;
@@ -11,6 +12,7 @@ using OnlineCourses.Core.Services;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
+Console.WriteLine($"OnlineCourses v{VersionInfo.Current()}");
 
 // композиційний корінь: тільки тут створюються конкретні реалізації
 Dictionary<string, IPricingPolicy> policies = new()
