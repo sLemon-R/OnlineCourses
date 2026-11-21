@@ -11,6 +11,8 @@ public class EnrollmentDiscountTests
     [InlineData(999.99, true, 50)]
     [InlineData(1000, false, 100)]
     [InlineData(1000, true, 150)]
+    [InlineData(1333.26, true, 199.99)]
+    [InlineData(1333.34, true, 200)]
     public void For_Boundaries_MatchesTable(double amount, bool isReturning, double expected)
     {
         decimal input = (decimal)amount;
