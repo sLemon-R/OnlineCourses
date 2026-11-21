@@ -47,3 +47,7 @@ Thumbs.db
 # власні винятки проєкту
 *.user
 data/*.local.json
+
+# результати тестів і покриття
+TestResults/
+coverage/
