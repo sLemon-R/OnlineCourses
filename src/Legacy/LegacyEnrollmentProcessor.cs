@@ -35,6 +35,8 @@ public class LegacyEnrollmentProcessor
 {
     private decimal _tmpSum;
     private decimal _tmpDiscount;
+    private readonly DiscountPolicy _discounts = new();
+    private readonly ShippingPolicy _shipping = new();
     private readonly List<string> _log = new();
 
     public string Handle(int docId, int clientId,
@@ -49,8 +51,8 @@ public class LegacyEnrollmentProcessor
         _log.Add("ok " + docId);
 
         _tmpSum = Subtotal(lines);
-        _tmpDiscount = DiscountOf(_tmpSum, clientKind, clientDone);
-        decimal ship = ShippingOf(_tmpSum - _tmpDiscount);
+        _tmpDiscount = _discounts.For(_tmpSum, clientKind, clientDone);
+        decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
         string txt = "Документ #" + docId + "\n";
@@ -97,29 +99,13 @@ public class LegacyEnrollmentProcessor
         return sum;
     }
 
-    private static decimal DiscountOf(decimal subtotal,
-        ClientKind kind, int doneCount)
-    {
-        var rate = kind switch
-        {
-            ClientKind.Vip => PricingRules.VipRate,
-            ClientKind.Staff => PricingRules.StaffRate,
-            _ => doneCount > PricingRules.LoyalOrders
-                ? PricingRules.LoyalRate : 0m
-        };
-        return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
-    }
-
-    private static decimal ShippingOf(decimal payable) =>
-        payable < PricingRules.FreeShipFrom ? PricingRules.ShipCost : 0m;
-
     public decimal Preview(ClientKind clientKind, int clientDone,
         List<CourseLine> items)
     {
         var subtotal = Subtotal(items);
-        var discount = DiscountOf(subtotal, clientKind, clientDone);
+        var discount = _discounts.For(subtotal, clientKind, clientDone);
         var payable = subtotal - discount;
-        return payable + ShippingOf(payable);
+        return payable + _shipping.For(payable);
     }
 
     public string DescribeClient(Learner c)
