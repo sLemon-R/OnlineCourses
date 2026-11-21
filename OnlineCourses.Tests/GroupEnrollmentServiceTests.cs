@@ -94,4 +94,77 @@ public class GroupEnrollmentServiceTests
 
         Assert.Equal("group.full", ex.Rule);
     }
+
+    [Fact]
+    public void Transfer_SameCourse_MovesSeat()
+    {
+        _service.Enroll(1, new[] { "CS-101-A" });
+
+        _service.Transfer(1, "CS-101-A", "CS-101-B");
+
+        Assert.False(_groups.Find("CS-101-A")!.Contains(1));
+        Assert.True(_groups.Find("CS-101-B")!.Contains(1));
+    }
+
+    [Fact]
+    public void Transfer_ToFullGroup_KeepsOriginalSeat()
+    {
+        _service.Enroll(2, new[] { "CS-101-B" });
+        _service.Enroll(1, new[] { "CS-101-A" });
+
+        Assert.Throws<DomainRuleException>(() => _service.Transfer(1, "CS-101-A", "CS-101-B"));
+
+        Assert.True(_groups.Find("CS-101-A")!.Contains(1));
+    }
+
+    [Fact]
+    public void Transfer_OtherCourse_ThrowsCourse()
+    {
+        _service.Enroll(1, new[] { "CS-101-A" });
+
+        DomainRuleException ex = Assert.Throws<DomainRuleException>(() => _service.Transfer(1, "CS-101-A", "DB-101-A"));
+
+        Assert.Equal("group.course", ex.Rule);
+    }
+
+    [Fact]
+    public void Expel_EnrolledListener_FreesSeat()
+    {
+        _service.Enroll(1, new[] { "CS-101-A" });
+
+        _service.Expel(1, "CS-101-A");
+
+        Assert.Equal(2, _groups.Find("CS-101-A")!.FreeSeats);
+    }
+
+    [Fact]
+    public void Pay_FullAmount_MarksPaid()
+    {
+        int id = _service.Enroll(1, new[] { "CS-101-A" });
+
+        _service.Pay(id, 2400m);
+
+        Assert.Equal(EnrollmentStatus.Paid, _enrollments.GetById(id)!.Status);
+    }
+
+    [Fact]
+    public void Pay_Twice_ThrowsState()
+    {
+        int id = _service.Enroll(1, new[] { "CS-101-A" });
+        _service.Pay(id, 2400m);
+
+        DomainRuleException ex = Assert.Throws<DomainRuleException>(() => _service.Pay(id, 2400m));
+
+        Assert.Equal("enrollment.state", ex.Rule);
+    }
+
+    [Fact]
+    public void Pay_LessThanTotal_ThrowsAmount()
+    {
+        int id = _service.Enroll(1, new[] { "CS-101-A" });
+
+        DomainRuleException ex = Assert.Throws<DomainRuleException>(() => _service.Pay(id, 2399.99m));
+
+        Assert.Equal("enrollment.amount", ex.Rule);
+    }
 }
