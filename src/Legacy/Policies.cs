@@ -1,19 +1,54 @@
 namespace OnlineCourses.Legacy;
 
+public interface IDiscountRule
+{
+    decimal? RateFor(Learner client);
+}
+
+public sealed class VipDiscountRule : IDiscountRule
+{
+    public decimal? RateFor(Learner client) =>
+        client.Kind == ClientKind.Vip ? PricingRules.VipRate : null;
+}
+
+public sealed class StaffDiscountRule : IDiscountRule
+{
+    public decimal? RateFor(Learner client) =>
+        client.Kind == ClientKind.Staff ? PricingRules.StaffRate : null;
+}
+
+public sealed class LoyalDiscountRule : IDiscountRule
+{
+    public decimal? RateFor(Learner client) =>
+        client.Kind == ClientKind.Regular && client.IsLoyal
+            ? PricingRules.LoyalRate : null;
+}
+
 public sealed class DiscountPolicy
 {
+    private readonly IReadOnlyList<IDiscountRule> _rules = new IDiscountRule[]
+    {
+        new VipDiscountRule(),
+        new StaffDiscountRule(),
+        new LoyalDiscountRule()
+    };
+
     public decimal For(decimal subtotal, Learner client)
     {
         var rate = RateFor(client);
         return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
     }
 
-    private static decimal RateFor(Learner client) => client.Kind switch
+    private decimal RateFor(Learner client)
     {
-        ClientKind.Vip => PricingRules.VipRate,
-        ClientKind.Staff => PricingRules.StaffRate,
-        _ => client.IsLoyal ? PricingRules.LoyalRate : 0m
-    };
+        foreach (var rule in _rules)
+        {
+            var rate = rule.RateFor(client);
+            if (rate is not null) return rate.Value;
+        }
+
+        return 0m;
+    }
 }
 
 public sealed class ShippingPolicy
