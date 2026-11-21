@@ -73,6 +73,24 @@ public sealed class EnrollmentService
         _repository.Add(enrollment);
     }
 
+    /// <summary>Шукає заявку. null тут — звичайна відповідь «не знайдено», а не помилка.</summary>
+    /// <param name="enrollmentId">Номер заявки.</param>
+    /// <returns>Заявка або null.</returns>
+    public Enrollment? FindOrDefault(int enrollmentId) => _repository.GetById(enrollmentId);
+
+    /// <summary>Скасовує заявку. Винятки не перехоплюються: їх бачить той, хто викликав.</summary>
+    /// <param name="enrollmentId">Номер заявки.</param>
+    /// <param name="reason">Причина скасування.</param>
+    /// <exception cref="DomainRuleException">Заявку не знайдено.</exception>
+    /// <exception cref="InvalidOperationException">Скасування з поточного стану заборонене.</exception>
+    public void Cancel(int enrollmentId, string reason)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        Enrollment enrollment = Find(enrollmentId);
+        enrollment.ChangeStatus(EnrollmentStatus.Cancelled);
+        _repository.Add(enrollment);
+    }
+
     private Enrollment Find(int enrollmentId) =>
         _repository.GetById(enrollmentId)
             ?? throw new DomainRuleException(

@@ -35,4 +35,23 @@ internal static class EnrollmentLineParser
 
         return Result.Ok(new EnrollmentLine(courseCode.Trim(), count, price));
     }
+
+    /// <summary>Рахує рядки з додатною кількістю місць. Без винятків для звичайного сміття.</summary>
+    /// <param name="rows">Рядки з кількістю місць.</param>
+    /// <returns>Кількість коректних рядків.</returns>
+    public static int CountValidSeats(IEnumerable<string> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        int valid = 0;
+        foreach (string row in rows)
+        {
+            if (int.TryParse(row, NumberStyles.Integer, CultureInfo.InvariantCulture, out int seats)
+                && seats > 0)
+            {
+                valid++;
+            }
+        }
+
+        return valid;
+    }
 }
