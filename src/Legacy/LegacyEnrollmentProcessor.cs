@@ -116,32 +116,10 @@ public class LegacyEnrollmentProcessor
     public decimal Preview(ClientKind clientKind, int clientDone,
         List<CourseLine> items)
     {
-        decimal s = 0m;
-        foreach (var it in items)
-        {
-            s += it.Seats * it.Price;
-        }
-
-        decimal d = 0m;
-        if (clientKind == ClientKind.Vip)
-        {
-            d = s * PricingRules.VipRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-        else if (clientKind == ClientKind.Staff)
-        {
-            d = s * PricingRules.StaffRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-        else if (clientDone > PricingRules.LoyalOrders)
-        {
-            d = s * PricingRules.LoyalRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-
-        decimal sh = 0m;
-        if (s - d < PricingRules.FreeShipFrom) sh = PricingRules.ShipCost;
-        return s - d + sh;
+        var subtotal = Subtotal(items);
+        var discount = DiscountOf(subtotal, clientKind, clientDone);
+        var payable = subtotal - discount;
+        return payable + ShippingOf(payable);
     }
 
     public string DescribeClient(Learner c)
