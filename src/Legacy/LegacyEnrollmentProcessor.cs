@@ -48,31 +48,9 @@ public class LegacyEnrollmentProcessor
         var lines = items!;
         _log.Add("ok " + docId);
 
-        _tmpSum = 0m;
-        for (int i = 0; i < lines.Count; i++)
-        {
-            _tmpSum += lines[i].Seats * lines[i].Price;
-        }
-
-        _tmpDiscount = 0m;
-        if (clientKind == ClientKind.Vip)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.VipRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-        else if (clientKind == ClientKind.Staff)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.StaffRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-        else if (clientDone > PricingRules.LoyalOrders)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.LoyalRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-
-        decimal ship = 0m;
-        if (_tmpSum - _tmpDiscount < PricingRules.FreeShipFrom) ship = PricingRules.ShipCost;
+        _tmpSum = Subtotal(lines);
+        _tmpDiscount = DiscountOf(_tmpSum, clientKind, clientDone);
+        decimal ship = ShippingOf(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
         string txt = "Документ #" + docId + "\n";
@@ -111,6 +89,29 @@ public class LegacyEnrollmentProcessor
 
     private static bool IsValidMail(string? mail) =>
         mail != null && mail.Contains("@");
+
+    private static decimal Subtotal(IReadOnlyList<CourseLine> items)
+    {
+        decimal sum = 0m;
+        foreach (var it in items) sum += it.Seats * it.Price;
+        return sum;
+    }
+
+    private static decimal DiscountOf(decimal subtotal,
+        ClientKind kind, int doneCount)
+    {
+        var rate = kind switch
+        {
+            ClientKind.Vip => PricingRules.VipRate,
+            ClientKind.Staff => PricingRules.StaffRate,
+            _ => doneCount > PricingRules.LoyalOrders
+                ? PricingRules.LoyalRate : 0m
+        };
+        return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
+    }
+
+    private static decimal ShippingOf(decimal payable) =>
+        payable < PricingRules.FreeShipFrom ? PricingRules.ShipCost : 0m;
 
     public decimal Preview(ClientKind clientKind, int clientDone,
         List<CourseLine> items)
