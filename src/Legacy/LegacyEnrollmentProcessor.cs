@@ -42,8 +42,6 @@ public class CourseLine
 
 public class LegacyEnrollmentProcessor
 {
-    private decimal _tmpSum;
-    private decimal _tmpDiscount;
     private readonly DiscountPolicy _discounts = new();
     private readonly ShippingPolicy _shipping = new();
     private readonly ReportBuilder _report = new();
@@ -55,17 +53,17 @@ public class LegacyEnrollmentProcessor
         if (error != null) return error;
         _log.Add("ok " + req.DocId);
 
-        _tmpSum = Subtotal(req.Items!);
-        _tmpDiscount = _discounts.For(_tmpSum, req.Client);
-        decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
-        decimal total = _tmpSum - _tmpDiscount + ship;
+        var subtotal = Subtotal(req.Items!);
+        var discount = _discounts.For(subtotal, req.Client);
+        var shipping = _shipping.For(subtotal - discount);
+        var total = subtotal - discount + shipping;
 
         if (req.SendMail)
         {
             _log.Add("mail -> " + req.Client.Email);
         }
 
-        return _report.Build(req, _tmpDiscount, ship, total);
+        return _report.Build(req, discount, shipping, total);
     }
 
     private static string? Validate(EnrollmentRequest req)
