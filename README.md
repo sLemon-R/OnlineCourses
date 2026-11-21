@@ -2,57 +2,58 @@
 
 ![CI](https://github.com/sLemon-R/OnlineCourses/actions/workflows/ci.yml/badge.svg)
 
-Навчальний проєкт з дисципліни «Конструювання програмного забезпечення».
-Варіант № 17: реєстрація слухачів на онлайн-курси.
+Консольний застосунок для зарахування слухачів на онлайн-курси: групи з обмеженими місцями, передумови курсів, знижка за пакет курсів і звіт про наповнюваність груп.
 
-Застосунок веде заявки слухачів на навчання: у заявку додаються курси (кількість місць і ціна за місце), рахується вартість, заявка проходить стани «нова → оплачена → навчання триває → завершена» або скасовується.
+## Автор і дисципліна
 
-## Склад рішення
+Варіант № 17 (OnlineCourses), Сторожук Владислав, група 472. Дисципліна «Конструювання програмного забезпечення», самостійна робота № 3.
 
-- OnlineCourses.Core — логіка предметної області (бібліотека)
-- OnlineCourses.App — консольний застосунок (введення, виведення)
-
-## Вимоги
-
-.NET SDK 8.0 або новіший, Git.
-
-## Складання та запуск
+## Швидкий старт
 
 ```
-dotnet build
-dotnet run --project OnlineCourses.App
+git clone https://github.com/sLemon-R/OnlineCourses.git
+dotnet build -c Release OnlineCourses/OnlineCourses.sln
+dotnet run --project OnlineCourses/OnlineCourses.App
 ```
 
-## Перевірка якості (ЛР8)
+## Структура рішення
 
-Конвеєр `.github/workflows/ci.yml` запускається на кожен push і pull request. Те саме локально:
+- `OnlineCourses.Core` — домен (Domain), прикладний шар (Services, Abstractions, Reporting, Input) та інфраструктура (Infrastructure) окремими теками.
+- `OnlineCourses.App` — консольне меню, стартові дані, файловий журнал, композиційний корінь.
+- `OnlineCourses.Tests` — модульні тести xUnit бібліотеки логіки.
+- `src/Legacy`, `tests/Legacy.Tests` — успадкований модуль з ЛР6 і його характеризаційні тести.
+
+## Можливості
+
+Сценарії описано в [docs/spec.md](docs/spec.md):
+
+- UC-01 Зарахувати слухача до однієї чи кількох груп (контроль місць, передумов, знижка за пакет).
+- UC-02 Відрахувати слухача або перевести в іншу групу того самого курсу.
+- UC-03 Оплатити заявку.
+- UC-04 Знайти заявки за слухачем і станом.
+- UC-05 Звіт «наповнюваність груп».
+- UC-06 Зберегти групи у `data/groups.json`.
+
+Посібник користувача — [docs/user-guide.md](docs/user-guide.md), архітектура — [docs/architecture.md](docs/architecture.md).
+
+## Тести й покриття
 
 ```
-dotnet format --verify-no-changes && dotnet build -c Release && dotnet test OnlineCourses.Tests -c Release /p:CollectCoverage=true /p:Threshold=60
+dotnet test OnlineCourses.Tests -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=70
 ```
 
-| Крок | Команда | Що ламає збірку |
-|---|---|---|
-| Формат | `dotnet format --verify-no-changes` | зайвий пробіл, відступ, порушене правило іменування |
-| Складання | `dotnet build -c Release` | будь-яке попередження CS, CA, SA, IDE |
-| Тести | `dotnet test -c Release` | хоча б один червоний тест |
-| Покриття | `/p:Threshold=60` | покриття рядків нижче за 60 % |
+Звіт `coverage.cobertura.xml` з'являється в теці `OnlineCourses.Tests`. Поточне покриття рядків бібліотеки логіки — дивіться останній прогін конвеєра; поріг 70 %.
 
-Секретів у коді немає; локальні налаштування (`appsettings.Local.json`, `*.secrets.json`, `.env`) ігноруються Git.
+Усе, що перевіряє конвеєр, одним рядком локально:
 
-## Обробка помилок (ЛР5)
+```
+dotnet format --verify-no-changes && dotnet build -c Release && dotnet test OnlineCourses.Tests -c Release /p:CollectCoverage=true /p:Threshold=70
+```
 
-- Помилки вводу користувача повертаються як `Result<T>` з поясненням, застосунок просить повторити ввід.
-- Порушення правил предметної області — `DomainRuleException` з ідентифікатором правила.
-- Помилки програміста — `ArgumentException` / `InvalidOperationException`, застосунок падає швидко.
-- Журнал — `ILogger` (рівні Debug, Information, Warning, Error), аудит у файлі — `FileAuditLog` з `using`.
-- Класифікація ситуацій — у файлі docs/errors.md.
+## Технології
 
-## Стандарт кодування
+.NET 8, C# 12, xUnit, coverlet, аналізатори Roslyn (.NET Analyzers, StyleCop.Analyzers), System.Text.Json, Microsoft.Extensions.Logging, GitHub Actions.
 
-Правила описано у файлі CODING_STANDARD.md і закріплено в .editorconfig.
-Перевірка: `dotnet format --verify-no-changes`
+## Обмеження й відомий борг
 
-## Автор
-
-Сторожук Владислав, група 472
+Заявки зберігаються лише в пам'яті, у файл JSON пишуться тільки групи. Немає розмежування прав: усі дії виконує один адміністратор. Повернення коштів після старту навчання не реалізоване. Правило залежностей між шарами контролюється оглядом коду, а не окремими проєктами. Повний перелік — у [docs/self-check.md](docs/self-check.md).
