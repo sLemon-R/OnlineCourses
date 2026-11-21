@@ -32,4 +32,14 @@ public class EnrollmentDiscountTests
 
         Assert.Equal("amount", ex.ParamName);
     }
+
+    [Fact]
+    public void For_HugeEnrollment_IsCappedAtMax()
+    {
+        decimal amount = 5000m;
+
+        decimal actual = EnrollmentDiscount.For(amount, true);
+
+        Assert.Equal(200m, actual);
+    }
 }
