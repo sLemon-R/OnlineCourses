@@ -73,4 +73,16 @@ catch (DomainRuleException ex)
     Console.WriteLine("Відмова [" + ex.Rule + "]: " + ex.Message);
 }
 
+string[] seatSamples = { "2", "дві", "-1", "5" };
+Console.WriteLine("Коректних рядків місць: " + EnrollmentLineParser.CountValidSeats(seatSamples));
+
+try
+{
+    service.Cancel(enrollment.Id, "передумав");
+}
+catch (InvalidOperationException ex)
+{
+    Console.WriteLine("Скасування неможливе: " + ex.Message);
+}
+
 Console.Write(EnrollmentCsvReport.TextOf(repository.GetAll()));
