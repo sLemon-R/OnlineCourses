@@ -1,5 +1,7 @@
 # OnlineCourses
 
+![CI](https://github.com/sLemon-R/OnlineCourses/actions/workflows/ci.yml/badge.svg)
+
 Навчальний проєкт з дисципліни «Конструювання програмного забезпечення».
 Варіант № 17: реєстрація слухачів на онлайн-курси.
 
@@ -20,6 +22,23 @@
 dotnet build
 dotnet run --project OnlineCourses.App
 ```
+
+## Перевірка якості (ЛР8)
+
+Конвеєр `.github/workflows/ci.yml` запускається на кожен push і pull request. Те саме локально:
+
+```
+dotnet format --verify-no-changes && dotnet build -c Release && dotnet test OnlineCourses.Tests -c Release /p:CollectCoverage=true /p:Threshold=60
+```
+
+| Крок | Команда | Що ламає збірку |
+|---|---|---|
+| Формат | `dotnet format --verify-no-changes` | зайвий пробіл, відступ, порушене правило іменування |
+| Складання | `dotnet build -c Release` | будь-яке попередження CS, CA, SA, IDE |
+| Тести | `dotnet test -c Release` | хоча б один червоний тест |
+| Покриття | `/p:Threshold=60` | покриття рядків нижче за 60 % |
+
+Секретів у коді немає; локальні налаштування (`appsettings.Local.json`, `*.secrets.json`, `.env`) ігноруються Git.
 
 ## Обробка помилок (ЛР5)
 

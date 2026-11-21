@@ -9,12 +9,11 @@ namespace OnlineCourses.Core.Services;
 /// <summary>Прикладний сервіс: оформлення заявки за обраною політикою ціни.</summary>
 public sealed partial class EnrollmentService
 {
-    private static readonly Func<ILogger, int, IDisposable?> EnrollmentScope =
-        LoggerMessage.DefineScope<int>("Enrollment:{EnrollmentId}");
-
     private readonly IEnrollmentRepository _repository;
     private readonly IPricingPolicy _pricing;
     private readonly ILogger<EnrollmentService> _log;
+    private readonly Func<ILogger, int, IDisposable?> _enrollmentScope =
+        LoggerMessage.DefineScope<int>("Enrollment:{EnrollmentId}");
 
     /// <summary>Створює сервіс. Залежності передаються ззовні.</summary>
     /// <param name="repository">Сховище заявок.</param>
@@ -68,7 +67,7 @@ public sealed partial class EnrollmentService
     /// </exception>
     public void Pay(int enrollmentId, decimal amount)
     {
-        using IDisposable? scope = EnrollmentScope(_log, enrollmentId);
+        using IDisposable? scope = _enrollmentScope(_log, enrollmentId);
         LogPaymentStarted(amount);
         Enrollment enrollment = Find(enrollmentId);
         decimal total = TotalOf(enrollment);
