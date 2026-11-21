@@ -40,7 +40,7 @@ public class CourseLine
     public string Group = "";
 }
 
-public class LegacyEnrollmentProcessor
+public sealed class EnrollmentProcessor
 {
     private readonly DiscountPolicy _discounts = new();
     private readonly ShippingPolicy _shipping = new();
