@@ -17,31 +17,21 @@ public class EnrollmentTests
         Assert.Equal(0m, total);
     }
 
-    [Fact]
-    public void Total_OneSeat_ReturnsUnitPrice()
+    [Theory]
+    [InlineData(1, 899.90, 899.90)]
+    [InlineData(2, 1499.50, 2999.00)]
+    [InlineData(5, 100, 500)]
+    public void Total_SingleLine_ReturnsSeatsTimesPrice(int seats, decimal unitPrice, decimal expected)
     {
+        // Arrange
         Enrollment enrollment = new() { Id = 1, ListenerId = 10 };
-        enrollment.AddLine(new EnrollmentLine { CourseCode = "CS-101", Seats = 1, UnitPrice = 899.90m });
+        enrollment.AddLine(new EnrollmentLine { CourseCode = "CS-101", Seats = seats, UnitPrice = unitPrice });
 
-        Assert.Equal(899.90m, enrollment.Total());
-    }
+        // Act
+        decimal total = enrollment.Total();
 
-    [Fact]
-    public void Total_TwoSeats_ReturnsDoublePrice()
-    {
-        Enrollment enrollment = new() { Id = 1, ListenerId = 10 };
-        enrollment.AddLine(new EnrollmentLine { CourseCode = "CS-101", Seats = 2, UnitPrice = 1499.50m });
-
-        Assert.Equal(2999.00m, enrollment.Total());
-    }
-
-    [Fact]
-    public void Total_FiveSeats_ReturnsFivePrices()
-    {
-        Enrollment enrollment = new() { Id = 1, ListenerId = 10 };
-        enrollment.AddLine(new EnrollmentLine { CourseCode = "CS-101", Seats = 5, UnitPrice = 100m });
-
-        Assert.Equal(500m, enrollment.Total());
+        // Assert
+        Assert.Equal(expected, total);
     }
 
     [Fact]
