@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace OnlineCourses.Core.Legacy;
 
 /// <summary>
@@ -9,9 +5,46 @@ namespace OnlineCourses.Core.Legacy;
 /// </summary>
 public class Subscription
 {
-    private readonly List<string[]> _lines = new List<string[]>();
+    /// <summary>Стан «нова».</summary>
+    public const int StatusNew = 0;
 
-    // public string prim; // примітка, поки не треба
+    /// <summary>Стан «оплачена».</summary>
+    public const int StatusPaid = 1;
+
+    /// <summary>Стан «навчання триває».</summary>
+    public const int StatusInProgress = 2;
+
+    /// <summary>Стан «скасована».</summary>
+    public const int StatusCancelled = 3;
+
+    /// <summary>Ставка податку на додану вартість.</summary>
+    private const decimal VatRate = 0.2m;
+
+    /// <summary>Поріг суми для знижки постійному слухачу.</summary>
+    private const decimal ReturningDiscountThreshold = 1000m;
+
+    /// <summary>Частка знижки постійному слухачу.</summary>
+    private const decimal ReturningDiscountRate = 0.10m;
+
+    /// <summary>Поріг суми для знижки на великий абонемент.</summary>
+    private const decimal LargeSubscriptionThreshold = 5000m;
+
+    /// <summary>Частка знижки на великий абонемент.</summary>
+    private const decimal LargeSubscriptionDiscountRate = 0.15m;
+
+    /// <summary>Кількість рядків, з якої діє знижка за кількість курсів.</summary>
+    private const int BulkLineCount = 10;
+
+    /// <summary>Сума знижки за кількість курсів, грн.</summary>
+    private const decimal BulkDiscountAmount = 100m;
+
+    /// <summary>Найбільша допустима кількість рядків в абонементі.</summary>
+    private const int MaxLineCount = 100;
+
+    /// <summary>Найкоротше допустиме прізвище слухача.</summary>
+    private const int MinListenerNameLength = 3;
+
+    private readonly List<string[]> _lines = new List<string[]>();
 
     /// <summary>
     /// Створює новий абонемент у стані «нова».
@@ -31,7 +64,7 @@ public class Subscription
     /// <summary>Отримує прізвище слухача.</summary>
     public string ListenerName { get; private set; }
 
-    /// <summary>Отримує стан абонемента: 0 — нова, 1 — оплачена, 2 — навчання, 3 — скасована.</summary>
+    /// <summary>Отримує стан абонемента (одна з констант Status...).</summary>
     public int Status { get; private set; }
 
     /// <summary>Отримує дату й час створення абонемента.</summary>
@@ -88,25 +121,19 @@ public class Subscription
             lineCount = lineCount + 1;
         }
 
-        // if (sum1 > 500) { sum1 = sum1 - 50; } // стара знижка
-
         // знижки не сумуються: постійному слухачу дається тільки його знижка
-        if (isReturningListener == true && total > 1000)
+        if (isReturningListener && total > ReturningDiscountThreshold)
         {
-            total = total * 0.9m;
+            total *= 1m - ReturningDiscountRate;
         }
-        else if (total > 5000)
+        else if (total > LargeSubscriptionThreshold)
         {
-            total = total * 0.85m;
-        }
-        else
-        {
-            total = total;
+            total *= 1m - LargeSubscriptionDiscountRate;
         }
 
-        if (lineCount > 10)
+        if (lineCount > BulkLineCount)
         {
-            total = total - 100;
+            total -= BulkDiscountAmount;
         }
 
         if (total < 0)
@@ -115,7 +142,7 @@ public class Subscription
         }
 
         // ПДВ нараховується на суму вже після всіх знижок
-        total = total + total * 0.2m;
+        total += total * VatRate;
         return Math.Round(total, 2);
     }
 
@@ -126,21 +153,21 @@ public class Subscription
     /// <returns>true, якщо перехід виконано; false, якщо він заборонений.</returns>
     public bool TryChangeStatus(int newStatus)
     {
-        if (Status == 0 && newStatus == 1)
+        if (Status == StatusNew && newStatus == StatusPaid)
         {
-            Status = 1;
+            Status = StatusPaid;
             return true;
         }
 
-        if (Status == 1 && newStatus == 2)
+        if (Status == StatusPaid && newStatus == StatusInProgress)
         {
-            Status = 2;
+            Status = StatusInProgress;
             return true;
         }
 
-        if (Status == 0 && newStatus == 3)
+        if (Status == StatusNew && newStatus == StatusCancelled)
         {
-            Status = 3;
+            Status = StatusCancelled;
             return true;
         }
 
@@ -155,11 +182,11 @@ public class Subscription
     {
         if (Id != null && Id != ""
             && ListenerName != null
-            && ListenerName.Length > 2
+            && ListenerName.Length > MinListenerNameLength - 1
             && _lines.Count > 0
-            && _lines.Count < 100
-            && Status >= 0
-            && Status <= 3)
+            && _lines.Count < MaxLineCount
+            && Status >= StatusNew
+            && Status <= StatusCancelled)
         {
             return true;
         }
