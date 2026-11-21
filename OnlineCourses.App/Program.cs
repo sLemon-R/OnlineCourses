@@ -1,16 +1,19 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using OnlineCourses.App;
+using OnlineCourses.Core;
 using OnlineCourses.Core.Abstractions;
 using OnlineCourses.Core.Domain;
 using OnlineCourses.Core.Errors;
 using OnlineCourses.Core.Infrastructure;
+using OnlineCourses.Core.Input;
 using OnlineCourses.Core.Pricing;
 using OnlineCourses.Core.Reporting;
 using OnlineCourses.Core.Services;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
+Console.WriteLine($"OnlineCourses v{VersionInfo.Current()}");
 
 // композиційний корінь: тільки тут створюються конкретні реалізації
 Dictionary<string, IPricingPolicy> policies = new()
@@ -53,14 +56,7 @@ while (true)
     }
 
     Console.WriteLine(input);
-    string[] parts = input.Split(';');
-    if (parts.Length != 3)
-    {
-        Console.WriteLine("Помилка вводу: потрібно три поля через ;");
-        continue;
-    }
-
-    Result<EnrollmentLine> parsed = EnrollmentLineParser.Parse(parts[0], parts[1], parts[2]);
+    Result<EnrollmentLine> parsed = EnrollmentLineParser.ParseRow(input);
     if (!parsed.IsSuccess)
     {
         Console.WriteLine("Помилка вводу: " + parsed.Error);
