@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace OnlineCourses.Core.Legacy;
 
 /// <summary>
@@ -76,7 +78,7 @@ public class Subscription
     /// <param name="subscriptions">Список абонементів.</param>
     /// <param name="subscriptionId">Номер, який шукаємо.</param>
     /// <returns>Знайдений абонемент або null, якщо такого номера немає.</returns>
-    public static Subscription FindById(List<Subscription> subscriptions, string subscriptionId)
+    public static Subscription? FindById(List<Subscription> subscriptions, string subscriptionId)
     {
         for (int i = 0; i < subscriptions.Count; i++)
         {
@@ -99,8 +101,8 @@ public class Subscription
     {
         string[] line = new string[3];
         line[0] = courseCode;
-        line[1] = seats.ToString();
-        line[2] = unitPrice.ToString();
+        line[1] = seats.ToString(CultureInfo.CurrentCulture);
+        line[2] = unitPrice.ToString(CultureInfo.CurrentCulture);
         _lines.Add(line);
     }
 
@@ -115,9 +117,9 @@ public class Subscription
         int lineCount = 0;
         for (int i = 0; i < _lines.Count; i++)
         {
-            int seats = int.Parse(_lines[i][1]);
-            decimal unitPrice = decimal.Parse(_lines[i][2]);
-            total = total + seats * unitPrice;
+            int seats = int.Parse(_lines[i][1], CultureInfo.CurrentCulture);
+            decimal unitPrice = decimal.Parse(_lines[i][2], CultureInfo.CurrentCulture);
+            total = total + (seats * unitPrice);
             lineCount = lineCount + 1;
         }
 
@@ -180,7 +182,7 @@ public class Subscription
     /// <returns>true, якщо номер, слухач, рядки й стан коректні.</returns>
     public bool IsValid()
     {
-        if (Id != null && Id != ""
+        if (!string.IsNullOrEmpty(Id)
             && ListenerName != null
             && ListenerName.Length > MinListenerNameLength - 1
             && _lines.Count > 0
@@ -200,11 +202,11 @@ public class Subscription
     /// <returns>Звіт: по рядку на курс і підсумок.</returns>
     public string BuildReport()
     {
-        string report = "";
+        string report = string.Empty;
         for (int i = 0; i < _lines.Count; i++)
         {
-            int seats = int.Parse(_lines[i][1]);
-            decimal unitPrice = decimal.Parse(_lines[i][2]);
+            int seats = int.Parse(_lines[i][1], CultureInfo.CurrentCulture);
+            decimal unitPrice = decimal.Parse(_lines[i][2], CultureInfo.CurrentCulture);
             report = report + "Курс: " + _lines[i][0]
                 + "; місць: " + _lines[i][1]
                 + "; ціна: " + _lines[i][2]
