@@ -21,6 +21,14 @@ dotnet build
 dotnet run --project OnlineCourses.App
 ```
 
+## Обробка помилок (ЛР5)
+
+- Помилки вводу користувача повертаються як `Result<T>` з поясненням, застосунок просить повторити ввід.
+- Порушення правил предметної області — `DomainRuleException` з ідентифікатором правила.
+- Помилки програміста — `ArgumentException` / `InvalidOperationException`, застосунок падає швидко.
+- Журнал — `ILogger` (рівні Debug, Information, Warning, Error), аудит у файлі — `FileAuditLog` з `using`.
+- Класифікація ситуацій — у файлі docs/errors.md.
+
 ## Стандарт кодування
 
 Правила описано у файлі CODING_STANDARD.md і закріплено в .editorconfig.

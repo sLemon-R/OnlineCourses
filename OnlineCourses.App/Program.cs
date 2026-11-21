@@ -70,8 +70,32 @@ while (true)
     Console.WriteLine("Додано: " + parsed.Value!.CourseCode);
 }
 
+string auditPath = Path.Combine(Path.GetTempPath(), "onlinecourses_audit.csv");
 decimal total = service.TotalOf(enrollment);
-service.Pay(enrollment.Id, total);
+using (FileAuditLog audit = new(auditPath))
+{
+    service.Pay(enrollment.Id, total);
+    audit.Write("pay", enrollment.Id);
+}
+
+// файл закривається навіть після винятку всередині using
+try
+{
+    using FileAuditLog audit = new(auditPath);
+    audit.Write("cancel-attempt", 42);
+    service.Cancel(42, "тест");
+}
+catch (DomainRuleException ex)
+{
+    Console.WriteLine("Відмова [" + ex.Rule + "]: " + ex.Message);
+}
+
+using (FileAuditLog reopened = new(auditPath))
+{
+    reopened.Write("reopen-ok", enrollment.Id);
+    Console.WriteLine("Журнал аудиту відкрито повторно: файл не заблоковано");
+}
+
 confirmation.Send(listener, enrollment, total);
 Console.WriteLine($"Заявка № {enrollment.Id}: {total:F2} грн, стан {enrollment.Status}");
 
