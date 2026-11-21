@@ -13,11 +13,15 @@ Enrollment enrollment = new()
 
 enrollment.AddLine(new EnrollmentLine
 {
-    CourseCode = "CS-101", Seats = 2, UnitPrice = 1499.50m,
+    CourseCode = "CS-101",
+    Seats = 2,
+    UnitPrice = 1499.50m,
 });
 enrollment.AddLine(new EnrollmentLine
 {
-    CourseCode = "DB-201", Seats = 1, UnitPrice = 899.90m,
+    CourseCode = "DB-201",
+    Seats = 1,
+    UnitPrice = 899.90m,
 });
 
 string total = enrollment.Total()
