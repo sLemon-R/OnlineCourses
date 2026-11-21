@@ -40,44 +40,34 @@ public class LegacyEnrollmentProcessor
     private readonly ReportBuilder _report = new();
     private readonly List<string> _log = new();
 
-    public string Handle(int docId, int clientId,
-        string clientName, string? clientMail,
-        ClientKind clientKind, int clientDone,
-        List<CourseLine>? items, DocState state,
-        string currency, DateTime createdAt, bool sendMail)
+    public string Handle(EnrollmentRequest req)
     {
-        var error = Validate(items, state, clientMail);
+        var error = Validate(req);
         if (error != null) return error;
-        var lines = items!;
-        _log.Add("ok " + docId);
+        _log.Add("ok " + req.DocId);
 
-        _tmpSum = Subtotal(lines);
-        _tmpDiscount = _discounts.For(_tmpSum, clientKind, clientDone);
+        _tmpSum = Subtotal(req.Items!);
+        _tmpDiscount = _discounts.For(_tmpSum, req.Client);
         decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
-        if (sendMail)
+        if (req.SendMail)
         {
-            _log.Add("mail -> " + clientMail);
+            _log.Add("mail -> " + req.Client.Email);
         }
 
-        return _report.Build(docId, clientName, lines, currency,
-            _tmpDiscount, ship, total);
+        return _report.Build(req, _tmpDiscount, ship, total);
     }
 
-    private static string? Validate(List<CourseLine>? items,
-        DocState state, string? clientMail)
+    private static string? Validate(EnrollmentRequest req)
     {
-        if (items is null) return "ERR: null";
-        if (items.Count == 0) return "ERR: empty";
-        if (state is not (DocState.New or DocState.Paid))
+        if (req.Items is null) return "ERR: null";
+        if (req.Items.Count == 0) return "ERR: empty";
+        if (req.State is not (DocState.New or DocState.Paid))
             return "ERR: state";
-        if (!IsValidMail(clientMail)) return "ERR: mail";
+        if (!req.Client.HasValidEmail) return "ERR: mail";
         return null;
     }
-
-    private static bool IsValidMail(string? mail) =>
-        mail != null && mail.Contains("@");
 
     private static decimal Subtotal(IReadOnlyList<CourseLine> items)
     {
@@ -86,11 +76,10 @@ public class LegacyEnrollmentProcessor
         return sum;
     }
 
-    public decimal Preview(ClientKind clientKind, int clientDone,
-        List<CourseLine> items)
+    public decimal Preview(Learner client, IReadOnlyList<CourseLine> items)
     {
         var subtotal = Subtotal(items);
-        var discount = _discounts.For(subtotal, clientKind, clientDone);
+        var discount = _discounts.For(subtotal, client);
         var payable = subtotal - discount;
         return payable + _shipping.For(payable);
     }
