@@ -16,9 +16,11 @@ public sealed class Enrollment
     public IReadOnlyList<EnrollmentLine> Lines => _lines;
 
     /// <summary>Додає рядок до заявки.</summary>
+    /// <param name="line">Рядок із курсом, кількістю місць і ціною.</param>
     public void AddLine(EnrollmentLine line) => _lines.Add(line);
 
     /// <summary>Обчислює вартість заявки.</summary>
+    /// <returns>Сума всіх рядків заявки, грн.</returns>
     public decimal Total()
     {
         decimal sum = 0m;
