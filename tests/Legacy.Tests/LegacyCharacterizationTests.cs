@@ -30,7 +30,7 @@ public class LegacyCharacterizationTests
             "empty" => new List<CourseLine>(),
             _ => null
         };
-        var sut = new LegacyEnrollmentProcessor();
+        var sut = new EnrollmentProcessor();
 
         var actual = sut.Handle(new EnrollmentRequest(1001,
             new Learner { Id = 7, Name = "Іван", Email = mail, Kind = ClientKind.Regular, DoneCount = 0 },
@@ -42,7 +42,7 @@ public class LegacyCharacterizationTests
     [Fact]
     public void Handle_VipEnrollment_ReturnsExactReport()
     {
-        var sut = new LegacyEnrollmentProcessor();
+        var sut = new EnrollmentProcessor();
 
         var report = sut.Handle(new EnrollmentRequest(1001,
             new Learner { Id = 7, Name = "Іван", Email = "a@b.c", Kind = ClientKind.Vip, DoneCount = 3 },
@@ -66,7 +66,7 @@ public class LegacyCharacterizationTests
     [InlineData(ClientKind.Regular, 11, 725)]
     public void Preview_ByKind_ReturnsTotal(ClientKind kind, int done, decimal expected)
     {
-        var sut = new LegacyEnrollmentProcessor();
+        var sut = new EnrollmentProcessor();
 
         var total = sut.Preview(new Learner { Kind = kind, DoneCount = done }, TwoLines());
 
@@ -76,7 +76,7 @@ public class LegacyCharacterizationTests
     [Fact]
     public void Preview_PayableExactlyAtFreeShippingBorder_NoShipping()
     {
-        var sut = new LegacyEnrollmentProcessor();
+        var sut = new EnrollmentProcessor();
         var items = new List<CourseLine>
         {
             new CourseLine { Code = "C-3", Seats = 1, Price = 1000m }
@@ -109,7 +109,7 @@ public class LegacyCharacterizationTests
     [Fact]
     public void DumpLog_AfterHandleWithMail_ListsBothRecords()
     {
-        var sut = new LegacyEnrollmentProcessor();
+        var sut = new EnrollmentProcessor();
 
         sut.Handle(new EnrollmentRequest(1001,
             new Learner { Id = 7, Name = "Іван", Email = "a@b.c", Kind = ClientKind.Regular, DoneCount = 0 },
