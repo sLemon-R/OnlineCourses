@@ -51,3 +51,8 @@ data/*.local.json
 # результати тестів і покриття
 TestResults/
 coverage/
+
+# локальні налаштування й секрети
+appsettings.Local.json
+**/*.secrets.json
+.env
