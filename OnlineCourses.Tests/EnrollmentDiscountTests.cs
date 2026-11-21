@@ -4,63 +4,32 @@ namespace OnlineCourses.Tests;
 
 public class EnrollmentDiscountTests
 {
-    [Fact]
-    public void For_NegativeAmount_ThrowsOutOfRange()
+    [Theory]
+    [InlineData(0, false, 0)]
+    [InlineData(400, true, 20)]
+    [InlineData(999.99, false, 0)]
+    [InlineData(999.99, true, 50)]
+    [InlineData(1000, false, 100)]
+    [InlineData(1000, true, 150)]
+    public void For_Boundaries_MatchesTable(double amount, bool isReturning, double expected)
     {
-        decimal amount = -0.01m;
+        decimal input = (decimal)amount;
 
-        void Act() => EnrollmentDiscount.For(amount, true);
+        decimal actual = EnrollmentDiscount.For(input, isReturning);
 
-        Assert.Throws<ArgumentOutOfRangeException>(Act);
+        Assert.Equal((decimal)expected, actual);
     }
 
-    [Fact]
-    public void For_ZeroAmountNewListener_ReturnsZero()
+    [Theory]
+    [InlineData(-0.01)]
+    [InlineData(-1000)]
+    public void For_NegativeAmount_ThrowsOutOfRange(double amount)
     {
-        decimal amount = 0m;
+        decimal input = (decimal)amount;
 
-        decimal actual = EnrollmentDiscount.For(amount, false);
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => EnrollmentDiscount.For(input, true));
 
-        Assert.Equal(0m, actual);
-    }
-
-    [Fact]
-    public void For_SmallEnrollmentReturningListener_ReturnsFivePercent()
-    {
-        decimal amount = 400m;
-
-        decimal actual = EnrollmentDiscount.For(amount, true);
-
-        Assert.Equal(20m, actual);
-    }
-
-    [Fact]
-    public void For_JustBelowBigEnrollment_ReturnsZero()
-    {
-        decimal amount = 999.99m;
-
-        decimal actual = EnrollmentDiscount.For(amount, false);
-
-        Assert.Equal(0m, actual);
-    }
-
-    [Fact]
-    public void For_ExactlyBigEnrollment_ReturnsTenPercent()
-    {
-        decimal amount = 1000m;
-
-        decimal actual = EnrollmentDiscount.For(amount, false);
-
-        Assert.Equal(100m, actual);
-    }
-
-    [Fact]
-    public void For_BigEnrollmentReturningListener_ReturnsFifteenPercent()
-    {
-        decimal amount = 1000m;
-
-        decimal actual = EnrollmentDiscount.For(amount, true);
-
-        Assert.Equal(150m, actual);
+        Assert.Equal("amount", ex.ParamName);
     }
 }
