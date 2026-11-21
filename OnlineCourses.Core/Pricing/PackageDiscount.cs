@@ -4,7 +4,7 @@ namespace OnlineCourses.Core.Pricing;
 public static class PackageDiscount
 {
     /// <summary>Кількість курсів, з якої діє знижка за два курси.</summary>
-    public const int TwoCourses = 2;
+    public const int TwoCourses  =  2;
 
     /// <summary>Кількість курсів, з якої діє найбільша знижка.</summary>
     public const int ThreeCourses = 3;
