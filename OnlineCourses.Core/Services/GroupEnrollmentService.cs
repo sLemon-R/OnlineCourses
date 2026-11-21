@@ -72,6 +72,72 @@ public sealed partial class GroupEnrollmentService
         return subtotal - discount;
     }
 
+    /// <summary>UC-03: оплачує заявку повною сумою зі знижкою.</summary>
+    /// <param name="enrollmentId">Номер заявки.</param>
+    /// <param name="amount">Сплачена сума, грн.</param>
+    /// <exception cref="DomainRuleException">Заявка не в стані New або сума менша за потрібну.</exception>
+    public void Pay(int enrollmentId, decimal amount)
+    {
+        LogScenarioStarted("UC-03", enrollmentId);
+        Enrollment enrollment = FindEnrollment(enrollmentId);
+        if (!enrollment.CanChangeTo(EnrollmentStatus.Paid))
+        {
+            LogRejected("UC-03", "enrollment.state");
+            throw new DomainRuleException("enrollment.state", "Заявку в стані " + enrollment.Status + " оплатити не можна");
+        }
+
+        if (amount < TotalOf(enrollmentId))
+        {
+            LogRejected("UC-03", "enrollment.amount");
+            throw new DomainRuleException("enrollment.amount", "Сума менша за вартість заявки");
+        }
+
+        enrollment.ChangeStatus(EnrollmentStatus.Paid);
+        _stores.Enrollments.Add(enrollment);
+        LogScenarioFinished("UC-03", enrollment.Id);
+    }
+
+    /// <summary>UC-02: відраховує слухача з групи й звільняє місце.</summary>
+    /// <param name="listenerId">Ідентифікатор слухача.</param>
+    /// <param name="groupCode">Код групи.</param>
+    /// <exception cref="DomainRuleException">Групи немає або слухач у ній не навчається.</exception>
+    public void Expel(int listenerId, string groupCode)
+    {
+        LogScenarioStarted("UC-02", listenerId);
+        CourseGroup group = FindGroup(groupCode);
+        group.Remove(listenerId);
+        _stores.Groups.Save(group);
+        LogScenarioFinished("UC-02", listenerId);
+    }
+
+    /// <summary>UC-02: переводить слухача в іншу групу того самого курсу.</summary>
+    /// <param name="listenerId">Ідентифікатор слухача.</param>
+    /// <param name="sourceCode">Код групи, з якої переводять.</param>
+    /// <param name="targetCode">Код групи, до якої переводять.</param>
+    /// <exception cref="DomainRuleException">Групи різних курсів, у цільовій немає місць або слухача немає в початковій.</exception>
+    public void Transfer(int listenerId, string sourceCode, string targetCode)
+    {
+        LogScenarioStarted("UC-02", listenerId);
+        CourseGroup source = FindGroup(sourceCode);
+        CourseGroup target = FindGroup(targetCode);
+        if (!string.Equals(source.Course.Code, target.Course.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            LogRejected("UC-02", "group.course");
+            throw new DomainRuleException("group.course", "Переводити можна лише між групами одного курсу");
+        }
+
+        if (!source.Contains(listenerId))
+        {
+            throw new DomainRuleException("group.member", "Слухача немає в групі " + source.Code);
+        }
+
+        target.Add(listenerId);
+        source.Remove(listenerId);
+        _stores.Groups.Save(target);
+        _stores.Groups.Save(source);
+        LogScenarioFinished("UC-02", listenerId);
+    }
+
     private void EnsureCanJoin(Listener listener, CourseGroup group)
     {
         if (group.StartDate < _clock.Today)
