@@ -75,3 +75,7 @@ dotnet_diagnostic.IDE0055.severity = warning
 # (заборона підкреслень в іменах) для проєкту тестів вимкнено
 [OnlineCourses.Tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# Клас-Бог ЛР4 вноситься для аудиту SOLID без змін; видаляється після виправлення
+[OnlineCourses.Core/Legacy/GodClass/*.cs]
+generated_code = true
