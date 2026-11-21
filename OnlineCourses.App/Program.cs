@@ -1,12 +1,25 @@
 using System.Text;
-using OnlineCourses.Core.Legacy;
+using OnlineCourses.Core.Documents;
+using OnlineCourses.Core.Domain;
+using OnlineCourses.Core.Reporting;
 
 Console.OutputEncoding = Encoding.UTF8;
-var subscription = new Subscription("Z-1001", "Іваненко");
-subscription.AddLine("CS-101", 3, 250m);
-subscription.AddLine("DB-201", 12, 90m);
-Console.WriteLine(subscription.CalculateTotal(false));
-Console.WriteLine(subscription.CalculateTotal(true));
-Console.WriteLine(subscription.IsValid());
-Console.WriteLine(subscription.TryChangeStatus(1));
-Console.Write(subscription.BuildReport());
+
+TotalRequest request = BuildRequestFromInput();
+TotalResult result = EnrollmentTotalCalculator.Calculate(request);
+string report = EnrollmentReport.TextOf(request, result);
+new EnrollmentReportPrinter(Console.Out).Print(report);
+
+static TotalRequest BuildRequestFromInput() => new()
+{
+    EnrollmentId = 1,
+    Listener = new ListenerInfo { Name = "Іваненко", Email = "i@ex.com", IsReturning = true },
+    Lines = new List<CourseItem>
+    {
+        new() { CourseCode = "CS-101", Seats = 12, UnitPrice = 100m },
+        new() { CourseCode = "DB-201", Seats = 1, UnitPrice = 250m },
+    },
+    CreatedAt = new DateOnly(2026, 3, 10),
+    Status = EnrollmentStatus.New,
+    DeliveryPrice = 60m,
+};

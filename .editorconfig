@@ -70,3 +70,8 @@ dotnet_diagnostic.SA1201.severity = warning
 dotnet_diagnostic.SA1503.severity = warning
 dotnet_diagnostic.SA1516.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
+
+# Тести іменуються Метод_Умова_Результат (стандарт N-14), тому CA1707
+# (заборона підкреслень в іменах) для проєкту тестів вимкнено
+[OnlineCourses.Tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
