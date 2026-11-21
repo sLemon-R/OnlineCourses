@@ -22,8 +22,11 @@ public class EnrollmentTotalCalculatorTests
         TotalRequest request = new()
         {
             EnrollmentId = 2,
-            Listener = new ListenerInfo { Name = "Петренко", Email = "p@ex.com", IsReturning = false },
-            Lines = new List<CourseItem> { new() { CourseCode = "CS-101", Seats = 2, UnitPrice = 200m } },
+            Listener = new ListenerInfo { Name = "Петренко", Email = "p@ex.com" },
+            Lines = new List<CourseItem>
+            {
+                new() { CourseCode = "CS-101", Seats = 2, UnitPrice = 200m },
+            },
             CreatedAt = new DateOnly(2026, 3, 10),
             CouponCode = "SALE10",
             Status = EnrollmentStatus.Paid,
