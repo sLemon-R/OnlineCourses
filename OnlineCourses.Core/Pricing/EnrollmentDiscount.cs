@@ -12,6 +12,9 @@ public static class EnrollmentDiscount
     /// <summary>Сума, з якої заявка вважається великою, грн.</summary>
     public const decimal BigEnrollmentFrom = 1000m;
 
+    /// <summary>Найбільша можлива знижка на одну заявку, грн.</summary>
+    public const decimal MaxDiscount = 200m;
+
     /// <summary>Рахує знижку на заявку.</summary>
     /// <param name="amount">Сума заявки без знижок, грн.</param>
     /// <param name="isReturning">Чи слухач постійний.</param>
@@ -35,6 +38,12 @@ public static class EnrollmentDiscount
             rate += BigEnrollmentRate;
         }
 
-        return decimal.Round(amount * rate, 2);
+        decimal discount = decimal.Round(amount * rate, 2);
+        if (discount > MaxDiscount)
+        {
+            discount = MaxDiscount;
+        }
+
+        return discount;
     }
 }
