@@ -32,9 +32,9 @@ public class LegacyCharacterizationTests
         };
         var sut = new LegacyEnrollmentProcessor();
 
-        var actual = sut.Handle(1001, 7, "Іван", mail,
-            ClientKind.Regular, 0, items, state, "UAH",
-            new DateTime(2026, 3, 1), false);
+        var actual = sut.Handle(new EnrollmentRequest(1001,
+            new Learner { Id = 7, Name = "Іван", Email = mail, Kind = ClientKind.Regular, DoneCount = 0 },
+            items, state, "UAH", false));
 
         Assert.Equal(expected, actual);
     }
@@ -44,9 +44,9 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyEnrollmentProcessor();
 
-        var report = sut.Handle(1001, 7, "Іван", "a@b.c",
-            ClientKind.Vip, 3, TwoLines(), DocState.New, "UAH",
-            new DateTime(2026, 3, 1), false);
+        var report = sut.Handle(new EnrollmentRequest(1001,
+            new Learner { Id = 7, Name = "Іван", Email = "a@b.c", Kind = ClientKind.Vip, DoneCount = 3 },
+            TwoLines(), DocState.New, "UAH", false));
 
         var expected =
             "Документ #1001\n" +
@@ -68,7 +68,7 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyEnrollmentProcessor();
 
-        var total = sut.Preview(kind, done, TwoLines());
+        var total = sut.Preview(new Learner { Kind = kind, DoneCount = done }, TwoLines());
 
         Assert.Equal(expected, total);
     }
@@ -82,7 +82,7 @@ public class LegacyCharacterizationTests
             new CourseLine { Code = "C-3", Seats = 1, Price = 1000m }
         };
 
-        var total = sut.Preview(ClientKind.Regular, 0, items);
+        var total = sut.Preview(new Learner { Kind = ClientKind.Regular, DoneCount = 0 }, items);
 
         Assert.Equal(1000m, total);
     }
@@ -111,9 +111,9 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyEnrollmentProcessor();
 
-        sut.Handle(1001, 7, "Іван", "a@b.c",
-            ClientKind.Regular, 0, TwoLines(), DocState.New, "UAH",
-            new DateTime(2026, 3, 1), true);
+        sut.Handle(new EnrollmentRequest(1001,
+            new Learner { Id = 7, Name = "Іван", Email = "a@b.c", Kind = ClientKind.Regular, DoneCount = 0 },
+            TwoLines(), DocState.New, "UAH", true));
 
         Assert.Equal("ok 1001\nmail -> a@b.c\n", sut.DumpLog());
     }
