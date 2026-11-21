@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
 using OnlineCourses.App;
 using OnlineCourses.Core.Abstractions;
 using OnlineCourses.Core.Domain;
@@ -24,7 +25,17 @@ string listenerType = listener.IsReturning ? "returning" : "standard";
 IPricingPolicy policy = policies.TryGetValue(listenerType, out IPricingPolicy? found)
     ? found
     : new StandardPricingPolicy();
-EnrollmentService service = new(repository, policy);
+using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddSimpleConsole(options =>
+    {
+        options.TimestampFormat = "HH:mm:ss ";
+        options.IncludeScopes = true;
+        options.SingleLine = true;
+    });
+    builder.SetMinimumLevel(LogLevel.Debug);
+});
+EnrollmentService service = new(repository, policy, loggerFactory.CreateLogger<EnrollmentService>());
 EnrollmentConfirmation confirmation = new(new ConsoleNotifier());
 
 Enrollment enrollment = new(1, listener.Id, new DateOnly(2026, 11, 21));
@@ -63,6 +74,15 @@ decimal total = service.TotalOf(enrollment);
 service.Pay(enrollment.Id, total);
 confirmation.Send(listener, enrollment, total);
 Console.WriteLine($"Заявка № {enrollment.Id}: {total:F2} грн, стан {enrollment.Status}");
+
+try
+{
+    service.Pay(enrollment.Id, 1m);
+}
+catch (DomainRuleException ex)
+{
+    Console.WriteLine("Відмова [" + ex.Rule + "]: " + ex.Message);
+}
 
 try
 {

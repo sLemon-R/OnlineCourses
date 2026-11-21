@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using OnlineCourses.Core.Abstractions;
 using OnlineCourses.Core.Domain;
 using OnlineCourses.Core.Errors;
@@ -6,20 +7,30 @@ using OnlineCourses.Core.Errors;
 namespace OnlineCourses.Core.Services;
 
 /// <summary>Прикладний сервіс: оформлення заявки за обраною політикою ціни.</summary>
-public sealed class EnrollmentService
+public sealed partial class EnrollmentService
 {
+    private static readonly Func<ILogger, int, IDisposable?> EnrollmentScope =
+        LoggerMessage.DefineScope<int>("Enrollment:{EnrollmentId}");
+
     private readonly IEnrollmentRepository _repository;
     private readonly IPricingPolicy _pricing;
+    private readonly ILogger<EnrollmentService> _log;
 
     /// <summary>Створює сервіс. Залежності передаються ззовні.</summary>
     /// <param name="repository">Сховище заявок.</param>
     /// <param name="pricing">Політика ціни.</param>
-    public EnrollmentService(IEnrollmentRepository repository, IPricingPolicy pricing)
+    /// <param name="log">Журнал сервісу.</param>
+    public EnrollmentService(
+        IEnrollmentRepository repository,
+        IPricingPolicy pricing,
+        ILogger<EnrollmentService> log)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(pricing);
+        ArgumentNullException.ThrowIfNull(log);
         _repository = repository;
         _pricing = pricing;
+        _log = log;
     }
 
     /// <summary>Рахує вартість заявки за політикою. Нічого не змінює.</summary>
@@ -57,10 +68,18 @@ public sealed class EnrollmentService
     /// </exception>
     public void Pay(int enrollmentId, decimal amount)
     {
+        using IDisposable? scope = EnrollmentScope(_log, enrollmentId);
+        LogPaymentStarted(amount);
         Enrollment enrollment = Find(enrollmentId);
         decimal total = TotalOf(enrollment);
+        if (amount > total)
+        {
+            LogOverpayment(amount - total);
+        }
+
         if (amount < total)
         {
+            LogUnderpayment(amount, total);
             string message = string.Format(
                 CultureInfo.InvariantCulture,
                 "Сума {0:F2} менша за вартість заявки {1:F2}",
@@ -71,6 +90,7 @@ public sealed class EnrollmentService
 
         enrollment.ChangeStatus(EnrollmentStatus.Paid);
         _repository.Add(enrollment);
+        LogPaid(amount);
     }
 
     /// <summary>Шукає заявку. null тут — звичайна відповідь «не знайдено», а не помилка.</summary>
@@ -96,4 +116,19 @@ public sealed class EnrollmentService
             ?? throw new DomainRuleException(
                 "enrollment.exists",
                 "Заявку " + enrollmentId.ToString(CultureInfo.InvariantCulture) + " не знайдено");
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Початок оплати, сума {Amount}")]
+    private partial void LogPaymentStarted(decimal amount);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Оплачено на {Amount}")]
+    private partial void LogPaid(decimal amount);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "Переплата {Extra}")]
+    private partial void LogOverpayment(decimal extra);
+
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Error,
+        Message = "Сума {Amount} менша за вартість {Total}, оплату відхилено")]
+    private partial void LogUnderpayment(decimal amount, decimal total);
 }
