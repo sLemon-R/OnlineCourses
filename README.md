@@ -1,5 +1,7 @@
 # OnlineCourses
 
+![CI](https://github.com/sLemon-R/OnlineCourses/actions/workflows/ci.yml/badge.svg)
+
 Навчальний проєкт з дисципліни «Конструювання програмного забезпечення».
 Варіант № 17: реєстрація слухачів на онлайн-курси.
 
