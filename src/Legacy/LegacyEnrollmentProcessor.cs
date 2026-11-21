@@ -43,41 +43,15 @@ public class LegacyEnrollmentProcessor
         List<CourseLine>? items, DocState state,
         string currency, DateTime createdAt, bool sendMail)
     {
-        if (items != null)
-        {
-            if (items.Count > 0)
-            {
-                if (state == DocState.New || state == DocState.Paid)
-                {
-                    if (clientMail != null &&
-                        clientMail.Contains("@"))
-                    {
-                        _log.Add("ok " + docId);
-                    }
-                    else
-                    {
-                        return "ERR: mail";
-                    }
-                }
-                else
-                {
-                    return "ERR: state";
-                }
-            }
-            else
-            {
-                return "ERR: empty";
-            }
-        }
-        else
-        {
-            return "ERR: null";
-        }
+        var error = Validate(items, state, clientMail);
+        if (error != null) return error;
+        var lines = items!;
+        _log.Add("ok " + docId);
 
         _tmpSum = 0m;
-        for (int i = 0; i < items.Count; i++)
+        for (int i = 0; i < lines.Count; i++)
         {
-            _tmpSum += items[i].Seats * items[i].Price;
+            _tmpSum += lines[i].Seats * lines[i].Price;
         }
 
         _tmpDiscount = 0m;
@@ -103,10 +77,10 @@ public class LegacyEnrollmentProcessor
 
         string txt = "Документ #" + docId + "\n";
         txt += "Клієнт: " + clientName + "\n";
-        for (int i = 0; i < items.Count; i++)
+        for (int i = 0; i < lines.Count; i++)
         {
-            txt += items[i].Code + " x" + items[i].Seats + " = " +
-                (items[i].Seats * items[i].Price)
+            txt += lines[i].Code + " x" + lines[i].Seats + " = " +
+                (lines[i].Seats * lines[i].Price)
                 .ToString("0.00") + " " + currency + "\n";
         }
 
@@ -123,6 +97,20 @@ public class LegacyEnrollmentProcessor
 
         return txt;
     }
+
+    private static string? Validate(List<CourseLine>? items,
+        DocState state, string? clientMail)
+    {
+        if (items is null) return "ERR: null";
+        if (items.Count == 0) return "ERR: empty";
+        if (state is not (DocState.New or DocState.Paid))
+            return "ERR: state";
+        if (!IsValidMail(clientMail)) return "ERR: mail";
+        return null;
+    }
+
+    private static bool IsValidMail(string? mail) =>
+        mail != null && mail.Contains("@");
 
     public decimal Preview(ClientKind clientKind, int clientDone,
         List<CourseLine> items)
