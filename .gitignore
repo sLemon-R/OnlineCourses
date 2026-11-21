@@ -56,3 +56,7 @@ coverage/
 appsettings.Local.json
 **/*.secrets.json
 .env
+
+# дані й журнали застосунку
+data/
+logs/

@@ -37,4 +37,7 @@ public sealed record Listener
 
     /// <summary>Отримує значення, чи слухач уже навчався на платформі.</summary>
     public bool IsReturning { get; }
+
+    /// <summary>Отримує коди пройдених курсів; зараховуються як передумови.</summary>
+    public IReadOnlySet<string> CompletedCourses { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 }
