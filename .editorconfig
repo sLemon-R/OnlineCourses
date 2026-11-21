@@ -76,3 +76,7 @@ dotnet_diagnostic.IDE0055.severity = warning
 # (заборона підкреслень в іменах) для проєкту тестів вимкнено
 [OnlineCourses.Tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# успадкований модуль ЛР6 перевіряється лише форматуванням: аналізатори вимкнено свідомо (борг TD-05)
+[{src,tests}/**.cs]
+dotnet_analyzer_diagnostic.severity = none
