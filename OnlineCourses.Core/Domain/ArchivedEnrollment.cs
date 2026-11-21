@@ -14,7 +14,8 @@ public sealed class ArchivedEnrollment
         ArgumentNullException.ThrowIfNull(enrollment);
         if (enrollment.Status is not (EnrollmentStatus.Completed or EnrollmentStatus.Cancelled))
         {
-            throw new InvalidOperationException("Архівувати можна лише завершену чи скасовану заявку.");
+            throw new InvalidOperationException(
+                "Архівувати можна лише завершену чи скасовану заявку.");
         }
 
         _enrollment = enrollment;
