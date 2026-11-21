@@ -22,28 +22,27 @@ public static class EnrollmentDiscount
     /// <exception cref="ArgumentOutOfRangeException">Сума від'ємна.</exception>
     public static decimal For(decimal amount, bool isReturning)
     {
+        EnsureAmountIsValid(amount);
+        decimal raw = amount * RateFor(amount, isReturning);
+        return Math.Min(decimal.Round(raw, 2), MaxDiscount);
+    }
+
+    private static void EnsureAmountIsValid(decimal amount)
+    {
         if (amount < 0m)
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Сума не може бути від'ємною.");
         }
+    }
 
-        decimal rate = 0m;
-        if (isReturning)
-        {
-            rate += ReturningRate;
-        }
-
+    private static decimal RateFor(decimal amount, bool isReturning)
+    {
+        decimal rate = isReturning ? ReturningRate : 0m;
         if (amount >= BigEnrollmentFrom)
         {
             rate += BigEnrollmentRate;
         }
 
-        decimal discount = decimal.Round(amount * rate, 2);
-        if (discount > MaxDiscount)
-        {
-            discount = MaxDiscount;
-        }
-
-        return discount;
+        return rate;
     }
 }
