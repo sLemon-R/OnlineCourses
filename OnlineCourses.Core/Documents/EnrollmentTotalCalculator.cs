@@ -5,57 +5,22 @@ namespace OnlineCourses.Core.Documents;
 /// <summary>Розрахунок вартості заявки на навчання.</summary>
 public static class EnrollmentTotalCalculator
 {
-    /// <summary>Рахує вартість заявки, наступний стан і за потреби друкує їх.</summary>
-    /// <param name="enrollmentId">Номер заявки.</param>
-    /// <param name="listenerName">Прізвище слухача.</param>
-    /// <param name="listenerEmail">Пошта слухача.</param>
-    /// <param name="isReturning">Чи слухач постійний.</param>
-    /// <param name="lines">Позиції заявки.</param>
-    /// <param name="createdAt">Дата створення заявки.</param>
-    /// <param name="couponCode">Код купона або порожній рядок.</param>
-    /// <param name="status">Поточний стан заявки.</param>
-    /// <param name="printToConsole">Чи друкувати результат.</param>
-    /// <param name="deliveryPrice">Ціна надсилання матеріалів, грн.</param>
-    /// <param name="newStatus">Наступний стан заявки.</param>
-    /// <returns>Вартість заявки, округлена до копійок.</returns>
-    public static decimal Process(
-        int enrollmentId,
-        string listenerName,
-        string listenerEmail,
-        bool isReturning,
-        IReadOnlyList<CourseItem> lines,
-        DateOnly createdAt,
-        string couponCode,
-        EnrollmentStatus status,
-        bool printToConsole,
-        decimal deliveryPrice,
-        out EnrollmentStatus newStatus)
+    /// <summary>Рахує вартість заявки й наступний стан. Нічого не друкує й не змінює.</summary>
+    /// <param name="request">Запит на розрахунок.</param>
+    /// <returns>Вартість, округлена до копійок, і наступний стан.</returns>
+    public static TotalResult Calculate(TotalRequest request)
     {
-        EnrollmentGuards.EnsureHeaderValid(enrollmentId, listenerName, listenerEmail);
-        decimal total = SubtotalOf(lines);
-        total -= ListenerDiscountOf(total, isReturning);
+        EnrollmentGuards.EnsureRequestValid(request);
+        decimal total = SubtotalOf(request.Lines);
+        total -= ListenerDiscountOf(total, request.Listener.IsReturning);
         total -= VolumeDiscountOf(total);
-        total -= CouponDiscountOf(total, couponCode);
-        total -= WeekendDiscountOf(total, createdAt);
-        total += DeliveryFeeOf(total, deliveryPrice);
-        total = status == EnrollmentStatus.Cancelled
+        total -= CouponDiscountOf(total, request.CouponCode);
+        total -= WeekendDiscountOf(total, request.CreatedAt);
+        total += DeliveryFeeOf(total, request.DeliveryPrice);
+        total = request.Status == EnrollmentStatus.Cancelled
             ? 0m
             : Math.Round(Math.Max(total, 0m), 2);
-        newStatus = NextStatusOf(status, total);
-        if (printToConsole)
-        {
-            Console.WriteLine("Заявка № " + enrollmentId);
-            Console.WriteLine("Слухач: " + listenerName);
-            foreach (CourseItem line in lines)
-            {
-                Console.WriteLine(line.CourseCode + " x " + line.Seats);
-            }
-
-            Console.WriteLine("Разом: " + total);
-            Console.WriteLine("Стан: " + newStatus);
-        }
-
-        return total;
+        return new TotalResult { Total = total, Status = NextStatusOf(request.Status, total) };
     }
 
     /// <summary>Сума позицій зі знижкою за групу.</summary>
