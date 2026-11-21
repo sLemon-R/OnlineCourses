@@ -75,3 +75,7 @@ dotnet_diagnostic.IDE0055.severity = warning
 # (заборона підкреслень в іменах) для проєкту тестів вимкнено
 [OnlineCourses.Tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# Антипатерни ЛР5 вносяться для демонстрації «до»; файл видаляється після виправлення
+[OnlineCourses.Core/Legacy/Antipatterns/*.cs]
+generated_code = true
