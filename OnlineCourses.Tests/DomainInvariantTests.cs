@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using OnlineCourses.Core.Domain;
 using OnlineCourses.Core.Infrastructure;
 using OnlineCourses.Core.Pricing;
@@ -30,7 +31,9 @@ public class DomainInvariantTests
     public void TotalOf_DiscountPolicy10Percent_ReturnsDiscountedSum()
     {
         EnrollmentService service = new(
-            new InMemoryEnrollmentRepository(), new DiscountPricingPolicy(0.10m));
+            new InMemoryEnrollmentRepository(),
+            new DiscountPricingPolicy(0.10m),
+            NullLogger<EnrollmentService>.Instance);
         Enrollment enrollment = new(1, 10, new DateOnly(2026, 11, 21));
         enrollment.AddLine(new EnrollmentLine("CS-101", 2, 1000m));
         enrollment.AddLine(new EnrollmentLine("DB-201", 1, 500m));
