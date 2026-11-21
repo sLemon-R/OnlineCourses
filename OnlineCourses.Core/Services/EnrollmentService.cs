@@ -102,7 +102,7 @@ public sealed partial class EnrollmentService
     /// <param name="enrollmentId">Номер заявки.</param>
     /// <param name="reason">Причина скасування.</param>
     /// <exception cref="DomainRuleException">Заявку не знайдено.</exception>
-    /// <exception cref="InvalidOperationException">Скасування з поточного стану заборонене.</exception>
+    /// <exception cref="InvalidOperationException">Скасування заборонене.</exception>
     public void Cancel(int enrollmentId, string reason)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);

@@ -35,7 +35,8 @@ using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
     });
     builder.SetMinimumLevel(LogLevel.Debug);
 });
-EnrollmentService service = new(repository, policy, loggerFactory.CreateLogger<EnrollmentService>());
+ILogger<EnrollmentService> serviceLogger = loggerFactory.CreateLogger<EnrollmentService>();
+EnrollmentService service = new(repository, policy, serviceLogger);
 EnrollmentConfirmation confirmation = new(new ConsoleNotifier());
 
 Enrollment enrollment = new(1, listener.Id, new DateOnly(2026, 11, 21));
