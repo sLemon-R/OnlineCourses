@@ -31,3 +31,11 @@ internal sealed class StubPricingPolicy : IPricingPolicy
 
     public decimal PriceOf(EnrollmentLine line) => _price;
 }
+
+internal sealed class SpyNotifier : INotifier
+{
+    public List<string> Sent { get; } = new();
+
+    public void Notify(string recipient, string subject, string body) =>
+        Sent.Add(recipient + "|" + subject + "|" + body);
+}
